@@ -1,0 +1,12 @@
+
+.bmx
+
+*.bak
+
+*.a
+
+*.i
+
+*.i2
+
+box2d.mod/doc/commands.html
