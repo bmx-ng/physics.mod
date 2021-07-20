@@ -1535,8 +1535,8 @@ Type b2Shape
 	Rem
 	bbdoc: 
 	End Rem
-'	Method TestSegment:Int(xf:b2XForm, lambda:Float Var, normal:b2Vec2 Var, segment:b2Segment, maxLambda:Float)''
-'	End Method
+	Method TestSegment:Int(xf:b2XForm, lambda:Float Var, normal:b2Vec2 Var, segment:b2Segment, maxLambda:Float)
+	End Method
 	
 	Rem
 	bbdoc: Get the maximum radius about the parent body's center of mass. 
@@ -2360,6 +2360,13 @@ Type b2PolygonShape Extends b2Shape
 		Return bmx_b2polygonshape_support(b2ObjectPtr, xf, d)
 	End Method
 
+	Rem
+	bbdoc: 
+	End Rem
+	Method TestSegment:Int(xf:b2XForm, lambda:Float Var, normal:b2Vec2 Var, segment:b2Segment, maxLambda:Float)
+		Return bmx_b2shape_testsegment(b2ObjectPtr, xf, lambda, normal, segment, maxLambda)
+	End Method
+
 End Type
 
 Extern
@@ -2370,6 +2377,7 @@ Extern
 	Function bmx_b2polygonshape_getcorevertices:b2Vec2[](handle:Byte Ptr)
 	Function bmx_b2polygonshape_getnormals:b2Vec2[](handle:Byte Ptr)
 	Function bmx_b2edgechaindef_setvertices(handle:Byte Ptr, vertices:b2Vec2[])
+	Function bmx_b2shape_testsegment:Int(handle:Byte Ptr, xf:b2XForm Var, lambda:Float Var, normal:b2Vec2 Var, segment:b2Segment Var, maxLambda:Float)
 End Extern
 
 Rem
@@ -2435,6 +2443,13 @@ Type b2CircleShape Extends b2Shape
 	End Rem
 	Method GetRadius:Float()
 		Return bmx_b2circleshape_getradius(b2ObjectPtr)
+	End Method
+
+	Rem
+	bbdoc: 
+	End Rem
+	Method TestSegment:Int(xf:b2XForm, lambda:Float Var, normal:b2Vec2 Var, segment:b2Segment, maxLambda:Float)
+		Return bmx_b2shape_testsegment(b2ObjectPtr, xf, lambda, normal, segment, maxLambda)
 	End Method
 
 End Type
@@ -2586,7 +2601,13 @@ Type b2EdgeShape Extends b2Shape
 		Return b2EdgeShape._create(bmx_b2edgeshape_getprevedge(b2ObjectPtr))
 	End Method
 
-	
+	Rem
+	bbdoc: 
+	End Rem
+	Method TestSegment:Int(xf:b2XForm, lambda:Float Var, normal:b2Vec2 Var, segment:b2Segment, maxLambda:Float)
+		Return bmx_b2shape_testsegment(b2ObjectPtr, xf, lambda, normal, segment, maxLambda)
+	End Method
+
 End Type
 
 Rem
@@ -4209,7 +4230,6 @@ Struct b2Segment
 	bbdoc: Creates a new b2Segment object.
 	End Rem
 	Method CreateXY:b2Segment(x1:Float, y1:Float, x2:Float, y2:Float)
-		'b2ObjectPtr = bmx_b2segment_createxy(x1, y1, x2, y2)
 		p1.x = x1
 		p1.y = y1
 		p2.x = x2

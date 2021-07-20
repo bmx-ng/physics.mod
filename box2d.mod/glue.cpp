@@ -89,6 +89,11 @@ extern "C" {
 		unsigned int id;
 	} Maxb2ContactResult;
 
+	typedef struct Maxb2Segment {
+		Maxb2Vec2 p1;
+		Maxb2Vec2 p2;
+	} Maxb2Segment;
+
 	void bmx_Maxb2AABBtob2AABB(Maxb2AABB * m, b2AABB * b) {
 		b->lowerBound = b2Vec2(m->lowerBound.x, m->lowerBound.y);
 		b->upperBound = b2Vec2(m->upperBound.x, m->upperBound.y);
@@ -164,8 +169,8 @@ extern "C" {
 	void bmx_b2world_free(b2World * world);
 	void bmx_b2world_setdestructionlistener(b2World * world, b2DestructionListener * listener);
 	void bmx_b2world_refilter(b2World * world, b2Shape * shape);
-	int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, int solidShapes);
-	b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, Maxb2Vec2 * normal, int solidShapes);
+	int32 bmx_b2world_raycast(b2World * world, Maxb2Segment * segment, BBArray * shapes, int solidShapes);
+	b2Shape * bmx_b2world_raycastone(b2World * world, Maxb2Segment * segment, float32 * lambda, Maxb2Vec2 * normal, int solidShapes);
 	int bmx_b2world_inrange(b2World * world, Maxb2AABB * aabb);
 	b2Controller * bmx_b2world_createcontroller(b2World * world, b2ControllerDef * def, b2ControllerType type);
 	void bmx_b2world_destroycontroller(b2World * world, b2Controller * controller);
@@ -523,7 +528,8 @@ extern "C" {
 	Maxb2Vec2 bmx_b2polygonshape_getfirstvertex(b2PolygonShape * shape, Maxb2XForm * xf);
 	Maxb2Vec2 bmx_b2polygonshape_centroid(b2PolygonShape * shape, Maxb2XForm * xf);
 	Maxb2Vec2 bmx_b2polygonshape_support(b2PolygonShape * shape, Maxb2XForm * xf, Maxb2Vec2 * d);
-
+	int bmx_b2shape_testsegment(b2Shape * shape, Maxb2XForm * xf, float * lambda, Maxb2Vec2 * normal, Maxb2Segment * segment, float maxLambda);
+	
 	Maxb2Vec2 bmx_b2circleshape_getlocalposition(b2CircleShape * shape);
 	float32 bmx_b2circleshape_getradius(b2CircleShape * shape);
 
@@ -938,11 +944,15 @@ void bmx_b2world_refilter(b2World * world, b2Shape * shape) {
 	world->Refilter(shape);
 }
 
-int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes, int solidShapes) {
+int32 bmx_b2world_raycast(b2World * world, Maxb2Segment * segment, BBArray * shapes, int solidShapes) {
 	int32 n = shapes->scales[0];
 	b2Shape* _shapes[n];
 	
-	int32 ret = world->Raycast(*segment, _shapes, n, solidShapes, NULL);
+	b2Segment s;
+	s.p1 = b2Vec2(segment->p1.x, segment->p1.y);
+	s.p2 = b2Vec2(segment->p2.x, segment->p2.y);
+	
+	int32 ret = world->Raycast(s, _shapes, n, solidShapes, NULL);
 
 	int32 count = (ret < n) ? ret : n;
 
@@ -953,9 +963,13 @@ int32 bmx_b2world_raycast(b2World * world, b2Segment * segment, BBArray * shapes
 	return ret;
 }
 
-b2Shape * bmx_b2world_raycastone(b2World * world, b2Segment * segment, float32 * lambda, Maxb2Vec2 * normal, int solidShapes) {
+b2Shape * bmx_b2world_raycastone(b2World * world, Maxb2Segment * segment, float32 * lambda, Maxb2Vec2 * normal, int solidShapes) {
 	b2Vec2 norm;
-	b2Shape * shape = world->RaycastOne(*segment, lambda, &norm, solidShapes, NULL);
+	b2Segment s;
+	s.p1 = b2Vec2(segment->p1.x, segment->p1.y);
+	s.p2 = b2Vec2(segment->p2.x, segment->p2.y);
+
+	b2Shape * shape = world->RaycastOne(s, lambda, &norm, solidShapes, NULL);
 	normal->x = norm.x;
 	normal->y = norm.y;
 	return shape;
@@ -1564,6 +1578,22 @@ void bmx_b2shape_setdensity(b2Shape * shape, float32 density) {
 	shape->SetDensity(density);
 }
 
+int bmx_b2shape_testsegment(b2Shape * shape, Maxb2XForm * xf, float * lambda, Maxb2Vec2 * normal, Maxb2Segment * segment, float maxLambda) {
+	b2XForm f;
+	bmx_Maxb2XFormtob2XForm(xf, &f);
+	
+	b2Vec2 n(normal->x, normal->y);
+	b2Segment s;
+	s.p1 = b2Vec2(segment->p1.x, segment->p1.y);
+	s.p2 = b2Vec2(segment->p2.x, segment->p2.y);
+	
+	int result = shape->TestSegment(f, lambda, &n, s, maxLambda);
+	
+	normal->x = n.x;
+	normal->y = n.y;
+	
+	return result;
+}
 
 // *****************************************************
 
@@ -2692,6 +2722,7 @@ Maxb2Vec2 bmx_b2polygonshape_support(b2PolygonShape * shape, Maxb2XForm * xf, Ma
 	b2Vec2 s(shape->Support(f, v));
 	return {s.x, s.y};
 }
+
 
 // *****************************************************
 

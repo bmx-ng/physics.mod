@@ -309,14 +309,6 @@ Extern
 
 	Function bmx_b2circleshape_getradius:Float(handle:Byte Ptr)
 
-	Function bmx_b2segment_createxy:Byte Ptr(x1:Float, y1:Float, x2:Float, y2:Float)
-	Function bmx_b2segment_create:Byte Ptr(p1:Byte Ptr, p2:Byte Ptr)
-	Function bmx_b2segment_getstartpoint:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2segment_getendpoint:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2segment_setstartpoint(handle:Byte Ptr, point:Byte Ptr)
-	Function bmx_b2segment_setendpoint(handle:Byte Ptr, point:Byte Ptr)
-	Function bmx_b2segment_delete(handle:Byte Ptr)
-
 	Function bmx_b2linejointdef_create:Byte Ptr()
 	Function bmx_b2linejointdef_enablelimit(handle:Byte Ptr, limit:Int)
 	Function bmx_b2linejointdef_getlimit:Int(handle:Byte Ptr)
