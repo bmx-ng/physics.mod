@@ -741,8 +741,8 @@ Type b2ContactListener
 	Method Add(point:b2ContactPoint)
 	End Method
 	
-	Function _Add(listener:b2ContactListener, point:Byte Ptr) { nomangle }
-		listener.Add(b2ContactPoint._create(point))
+	Function _Add(listener:b2ContactListener, point:b2ContactPoint) { nomangle }
+		listener.Add(point)
 	End Function
 
 	Rem
@@ -752,8 +752,8 @@ Type b2ContactListener
 	Method Persist(point:b2ContactPoint)
 	End Method
 	
-	Function _Persist(listener:b2ContactListener, point:Byte Ptr) { nomangle }
-		listener.Persist(b2ContactPoint._create(point))
+	Function _Persist(listener:b2ContactListener, point:b2ContactPoint) { nomangle }
+		listener.Persist(point)
 	End Function
 
 	Rem
@@ -763,8 +763,8 @@ Type b2ContactListener
 	Method Remove(point:b2ContactPoint)
 	End Method
 
-	Function _Remove(listener:b2ContactListener, point:Byte Ptr) { nomangle }
-		listener.Remove(b2ContactPoint._create(point))
+	Function _Remove(listener:b2ContactListener, point:b2ContactPoint) { nomangle }
+		listener.Remove(point)
 	End Function
 
 	Rem
@@ -773,8 +773,8 @@ Type b2ContactListener
 	Method Result(result:b2ContactResult)
 	End Method
 	
-	Function _Result(listener:b2ContactListener, result:Byte Ptr) { nomangle }
-		listener.Result(b2ContactResult._create(result))
+	Function _Result(listener:b2ContactListener, result:b2ContactResult) { nomangle }
+		listener.Result(result)
 	End Function
 
 	Method Delete()
@@ -880,134 +880,132 @@ End Type
 Rem
 bbdoc: This type is used to report contact points. 
 End Rem
-Type b2ContactPoint
+Struct b2ContactPoint
 
-	Field b2ObjectPtr:Byte Ptr
-
-	Function _create:b2ContactPoint(b2ObjectPtr:Byte Ptr)
-		If b2ObjectPtr Then
-			Local contactPoint:b2ContactPoint = New b2ContactPoint
-			contactPoint.b2ObjectPtr = b2ObjectPtr
-			Return contactPoint
-		End If
-	End Function
+	Field shape1:Byte Ptr
+	Field shape2:Byte Ptr
+	Field position:b2Vec2
+	Field velocity:b2Vec2
+	Field normal:b2Vec2
+	Field separation:Float
+	Field friction:Float
+	Field restitution:Float
+	Field id:UInt
 
 	Rem
 	bbdoc: Returns the first shape.
 	End Rem
 	Method GetShape1:b2Shape()
-		Return b2Shape._create(bmx_b2contactpoint_getshape1(b2ObjectPtr))
+		Return b2Shape._create(shape1)
 	End Method
 	
 	Rem
 	bbdoc: Returns the second shape.
 	End Rem
 	Method GetShape2:b2Shape()
-		Return b2Shape._create(bmx_b2contactpoint_getshape2(b2ObjectPtr))
+		Return b2Shape._create(shape2)
 	End Method
 	
 	Rem
 	bbdoc: Returns position in world coordinates.
 	End Rem
 	Method GetPosition:b2Vec2()
-		Return bmx_b2contactpoint_getposition(b2ObjectPtr)
+		Return position
 	End Method
 
 	Rem
 	bbdoc: Returns the velocity of point on body2 relative to point on body1 (pre-solver).
 	End Rem
 	Method GetVelocity:b2Vec2()
-		Return bmx_b2contactpoint_getvelocity(b2ObjectPtr)
+		Return velocity
 	End Method
 	
 	Rem
 	bbdoc: Points from shape1 to shape2.
 	End Rem
 	Method GetNormal:b2Vec2()
-		Return bmx_b2contactpoint_getnormal(b2ObjectPtr)
+		Return normal
 	End Method
 
 	Rem
 	bbdoc: The separation is negative when shapes are touching 
 	End Rem
 	Method GetSeparation:Float()
-		Return bmx_b2contactpoint_getseparation(b2ObjectPtr)
+		Return separation
 	End Method
 
 	Rem
 	bbdoc: Returns the combined friction coefficient.
 	End Rem
 	Method GetFriction:Float()
-		Return bmx_b2contactpoint_getfriction(b2ObjectPtr)
+		Return friction
 	End Method
 
 	Rem
 	bbdoc: Returns the combined restitution coefficient.
 	End Rem
 	Method GetRestitution:Float()
-		Return bmx_b2contactpoint_getrestitution(b2ObjectPtr)
+		Return restitution
 	End Method
 
-End Type
+End Struct
 
 Rem
 bbdoc: This type is used to report contact point results.
 End Rem
-Type b2ContactResult
+Struct b2ContactResult
 
-	Field b2ObjectPtr:Byte Ptr
-
-	Function _create:b2ContactResult(b2ObjectPtr:Byte Ptr)
-		If b2ObjectPtr Then
-			Local result:b2ContactResult = New b2ContactResult
-			result.b2ObjectPtr = b2ObjectPtr
-			Return result
-		End If
-	End Function
+	Field shape1:Byte Ptr
+	Field shape2:Byte Ptr
+	Field position:b2Vec2
+	Field normal:b2Vec2
+	Field normalImpulse:Float
+	Field tangentImpulse:Float
+	Field id:UInt
 
 	Rem
 	bbdoc: Returns the first shape.
 	End Rem
 	Method GetShape1:b2Shape()
-		Return b2Shape._create(bmx_b2contactresult_getshape1(b2ObjectPtr))
+		Return b2Shape._create(shape1)
 	End Method
 	
 	Rem
 	bbdoc: Returns the second shape.
 	End Rem
 	Method GetShape2:b2Shape()
-		Return b2Shape._create(bmx_b2contactresult_getshape2(b2ObjectPtr))
+		Return b2Shape._create(shape2)
 	End Method
 	
 	Rem
 	bbdoc: Returns position in world coordinates.
 	End Rem
 	Method GetPosition:b2Vec2()
-		Return bmx_b2contactresult_getposition(b2ObjectPtr)
+		Return position
 	End Method
 	
 	Rem
 	bbdoc: Points from shape1 to shape2.
 	End Rem
 	Method GetNormal:b2Vec2()
-		Return bmx_b2contactresult_getnormal(b2ObjectPtr)
+		Return normal
 	End Method
 	
 	Rem
 	bbdoc: Returns the normal impulse applied to body2.
 	End Rem
 	Method GetNormalImpulse:Float()
-		Return bmx_b2contactresult_getnormalimpulse(b2ObjectPtr)
+		Return normalImpulse
 	End Method
 	
 	Rem
 	bbdoc: Returns the tangent impulse applied to body2.
 	End Rem
 	Method GetTangentImpulse:Float()
-		Return bmx_b2contactresult_gettangentimpulse(b2ObjectPtr)
+		Return tangentImpulse
 	End Method
 	
-End Type
+End Struct
 
 Rem
 bbdoc: The base joint type.
@@ -5227,12 +5225,5 @@ Extern
 
 	Function bmx_b2tensordampingcontroller_gettensor:b2Mat22(handle:Byte Ptr)
 	Function bmx_b2tensordampingcontroller_settensor(handle:Byte Ptr, tensor:b2Mat22 Var)
-
-	Function bmx_b2contactpoint_getposition:b2Vec2(handle:Byte Ptr)
-	Function bmx_b2contactpoint_getvelocity:b2Vec2(handle:Byte Ptr)
-	Function bmx_b2contactpoint_getnormal:b2Vec2(handle:Byte Ptr)
-
-	Function bmx_b2contactresult_getposition:b2Vec2(handle:Byte Ptr)
-	Function bmx_b2contactresult_getnormal:b2Vec2(handle:Byte Ptr)
 
 End Extern

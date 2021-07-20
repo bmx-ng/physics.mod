@@ -67,6 +67,28 @@ extern "C" {
 		Maxb2Mat22 R;
 	} Maxb2XForm;
 
+	typedef struct Maxb2ContactPoint {
+		b2Shape* shape1;
+		b2Shape* shape2;
+		Maxb2Vec2 position;
+		Maxb2Vec2 velocity;
+		Maxb2Vec2 normal;
+		float32 separation;
+		float32 friction;
+		float32 restitution;
+		unsigned int id;
+	} Maxb2ContactPoint;
+
+	typedef struct Maxb2ContactResult {
+		b2Shape* shape1;
+		b2Shape* shape2;
+		Maxb2Vec2 position;
+		Maxb2Vec2 normal;
+		float32 normalImpulse;
+		float32 tangentImpulse;
+		unsigned int id;
+	} Maxb2ContactResult;
+
 	void bmx_Maxb2AABBtob2AABB(Maxb2AABB * m, b2AABB * b) {
 		b->lowerBound = b2Vec2(m->lowerBound.x, m->lowerBound.y);
 		b->upperBound = b2Vec2(m->upperBound.x, m->upperBound.y);
@@ -88,10 +110,10 @@ extern "C" {
 	void CB_PREF(physics_box2d_b2DebugDraw__DrawSolidCircle)(BBObject * maxHandle, Maxb2Vec2 center, float32 radius, Maxb2Vec2 axis, int r, int g, int b);
 	BBObject * CB_PREF(physics_box2d_b2World__createJoint)(b2JointType type);
 	int CB_PREF(physics_box2d_b2ContactFilter__ShouldCollide)(BBObject * maxHandle, b2Shape * shape1, b2Shape * shape2);
-	void CB_PREF(physics_box2d_b2ContactListener__Add)(BBObject * maxHandle, const b2ContactPoint* point);
-	void CB_PREF(physics_box2d_b2ContactListener__Persist)(BBObject * maxHandle, const b2ContactPoint* point);
-	void CB_PREF(physics_box2d_b2ContactListener__Remove)(BBObject * maxHandle, const b2ContactPoint* point);
-	void CB_PREF(physics_box2d_b2ContactListener__Result)(BBObject * maxHandle, const b2ContactResult* result);
+	void CB_PREF(physics_box2d_b2ContactListener__Add)(BBObject * maxHandle, Maxb2ContactPoint point);
+	void CB_PREF(physics_box2d_b2ContactListener__Persist)(BBObject * maxHandle, Maxb2ContactPoint point);
+	void CB_PREF(physics_box2d_b2ContactListener__Remove)(BBObject * maxHandle, Maxb2ContactPoint point);
+	void CB_PREF(physics_box2d_b2ContactListener__Result)(BBObject * maxHandle, Maxb2ContactResult result);
 	void CB_PREF(physics_box2d_b2BoundaryListener__Violation)(BBObject * maxHandle, b2Body * body);
 
 	BBObject * CB_PREF(physics_box2d_b2World___createController)(b2ControllerType type);
@@ -405,22 +427,6 @@ extern "C" {
 	b2Contact * bmx_b2contact_getnext(b2Contact * contact);
 	int bmx_b2contact_issolid(b2Contact * contact);
 	int32 bmx_b2contact_getmanifoldcount(b2Contact * contact);
-
-	b2Shape * bmx_b2contactresult_getshape1(b2ContactResult * contactResult);
-	b2Shape * bmx_b2contactresult_getshape2(b2ContactResult * contactResult);
-	Maxb2Vec2 bmx_b2contactresult_getposition(b2ContactResult * contactResult);
-	Maxb2Vec2 bmx_b2contactresult_getnormal(b2ContactResult * contactResult);
-	float32 bmx_b2contactresult_getnormalimpulse(b2ContactResult * contactResult);
-	float32 bmx_b2contactresult_gettangentimpulse(b2ContactResult * contactResult);
-
-	b2Shape * bmx_b2contactpoint_getshape1(b2ContactPoint * contactPoint);
-	b2Shape * bmx_b2contactpoint_getshape2(b2ContactPoint * contactPoint);
-	Maxb2Vec2  bmx_b2contactpoint_getposition(b2ContactPoint * contactPoint);
-	Maxb2Vec2 bmx_b2contactpoint_getvelocity(b2ContactPoint * contactPoint);
-	Maxb2Vec2 bmx_b2contactpoint_getnormal(b2ContactPoint * contactPoint);
-	float32 bmx_b2contactpoint_getseparation(b2ContactPoint * contactPoint);
-	float32 bmx_b2contactpoint_getfriction(b2ContactPoint * contactPoint);
-	float32 bmx_b2contactpoint_getrestitution(b2ContactPoint * contactPoint);
 
 	MaxFilterData* bmx_b2filterdata_create();
 	uint16  bmx_b2filterdata_getcategorybits(MaxFilterData * filterData);
@@ -1748,21 +1754,63 @@ public:
 		: maxHandle(handle)
 	{
 	}
-	
+
 	void Add(const b2ContactPoint* point) {
-		CB_PREF(physics_box2d_b2ContactListener__Add)(maxHandle, point);
+		Maxb2ContactPoint p = {
+			point->shape1,
+			point->shape2,
+			{point->position.x, point->position.y},
+			{point->velocity.x, point->velocity.y},
+			{point->normal.x, point->normal.y},
+			point->separation,
+			point->friction,
+			point->restitution,
+			point->id.key
+		};
+		CB_PREF(physics_box2d_b2ContactListener__Add)(maxHandle, p);
 	}
 
 	void Persist(const b2ContactPoint* point) {
-		CB_PREF(physics_box2d_b2ContactListener__Persist)(maxHandle, point);
+		Maxb2ContactPoint p = {
+			point->shape1,
+			point->shape2,
+			{point->position.x, point->position.y},
+			{point->velocity.x, point->velocity.y},
+			{point->normal.x, point->normal.y},
+			point->separation,
+			point->friction,
+			point->restitution,
+			point->id.key
+		};
+		CB_PREF(physics_box2d_b2ContactListener__Persist)(maxHandle, p);
 	}
 
 	void Remove(const b2ContactPoint* point) {
-		CB_PREF(physics_box2d_b2ContactListener__Remove)(maxHandle, point);
+		Maxb2ContactPoint p = {
+			point->shape1,
+			point->shape2,
+			{point->position.x, point->position.y},
+			{point->velocity.x, point->velocity.y},
+			{point->normal.x, point->normal.y},
+			point->separation,
+			point->friction,
+			point->restitution,
+			point->id.key
+		};
+		CB_PREF(physics_box2d_b2ContactListener__Remove)(maxHandle, p);
 	}
 
 	void Result(const b2ContactResult* result) {
-		CB_PREF(physics_box2d_b2ContactListener__Result)(maxHandle, result);
+		Maxb2ContactResult r = {
+			result->shape1,
+			result->shape2,
+			{result->position.x, result->position.y},
+			{result->normal.x, result->normal.y},
+			result->normalImpulse,
+			result->tangentImpulse,
+			result->id.key	
+		};
+		CB_PREF(physics_box2d_b2ContactListener__Result)(maxHandle, r);
 	}
 
 private:
@@ -2167,33 +2215,6 @@ float32 bmx_b2dot(Maxb2Vec2 * a, Maxb2Vec2 * b) {
 }
 
 // *****************************************************
-/*
-b2XForm * bmx_b2xform_create() {
-	return new b2XForm;
-}
-
-Maxb2Vec2 bmx_b2xform_getposition(b2XForm * form) {
-	return {form->position.x, form->position.y};
-}
-
-void bmx_b2xform_setposition(b2XForm * form, Maxb2Vec2 * pos) {
-	form->position = b2Vec2(pos->x, pos->y);
-}
-
-Maxb2Mat22 bmx_b2xform_getr(b2XForm * form) {
-	
-	return &form->R;
-}
-
-void bmx_b2xform_setr(b2XForm * form, b2Mat22 * r) {
-	form->R = *r;
-}
-
-void bmx_b2xform_delete(b2XForm * form) {
-	delete form;
-}
-*/
-// *****************************************************
 
 void bmx_b2mat22_setangle(Maxb2Mat22 * mat, float32 angle) {
 	b2Mat22 m(b2Vec2(mat->col1.x, mat->col1.y), b2Vec2(mat->col2.x, mat->col2.y));
@@ -2254,67 +2275,6 @@ int bmx_b2contact_issolid(b2Contact * contact) {
 int32 bmx_b2contact_getmanifoldcount(b2Contact * contact) {
 	return contact->GetManifoldCount();
 }
-
-// *****************************************************
-
-b2Shape * bmx_b2contactresult_getshape1(b2ContactResult * contactResult) {
-	return contactResult->shape1;
-}
-
-b2Shape * bmx_b2contactresult_getshape2(b2ContactResult * contactResult) {
-	return contactResult->shape2;
-}
-
-Maxb2Vec2 bmx_b2contactresult_getposition(b2ContactResult * contactResult) {
-	return {contactResult->position.x, contactResult->position.y};
-}
-
-Maxb2Vec2 bmx_b2contactresult_getnormal(b2ContactResult * contactResult) {
-	return {contactResult->normal.x, contactResult->normal.y};
-}
-
-float32 bmx_b2contactresult_getnormalimpulse(b2ContactResult * contactResult) {
-	return contactResult->normalImpulse;
-}
-
-float32 bmx_b2contactresult_gettangentimpulse(b2ContactResult * contactResult) {
-	return contactResult->tangentImpulse;
-}
-
-// *****************************************************
-
-b2Shape * bmx_b2contactpoint_getshape1(b2ContactPoint * contactPoint) {
-	return contactPoint->shape1;
-}
-
-b2Shape * bmx_b2contactpoint_getshape2(b2ContactPoint * contactPoint) {
-	return contactPoint->shape2;
-}
-
-Maxb2Vec2 bmx_b2contactpoint_getposition(b2ContactPoint * contactPoint) {
-	return {contactPoint->position.x, contactPoint->position.y};
-}
-
-Maxb2Vec2 bmx_b2contactpoint_getvelocity(b2ContactPoint * contactPoint) {
-	return {contactPoint->velocity.x, contactPoint->velocity.y};
-}
-
-Maxb2Vec2 bmx_b2contactpoint_getnormal(b2ContactPoint * contactPoint) {
-	return {contactPoint->normal.x, contactPoint->normal.y};
-}
-
-float32 bmx_b2contactpoint_getseparation(b2ContactPoint * contactPoint) {
-	return contactPoint->separation;
-}
-
-float32 bmx_b2contactpoint_getfriction(b2ContactPoint * contactPoint) {
-	return contactPoint->friction;
-}
-
-float32 bmx_b2contactpoint_getrestitution(b2ContactPoint * contactPoint) {
-	return contactPoint->restitution;
-}
-
 
 // *****************************************************
 

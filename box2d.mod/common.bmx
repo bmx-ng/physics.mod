@@ -252,17 +252,6 @@ Extern
 	Function bmx_b2contact_issolid:Int(handle:Byte Ptr)
 	Function bmx_b2contact_getmanifoldcount:Int(handle:Byte Ptr)
 
-	Function bmx_b2contactresult_getshape1:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2contactresult_getshape2:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2contactresult_getnormalimpulse:Float(handle:Byte Ptr)
-	Function bmx_b2contactresult_gettangentimpulse:Float(handle:Byte Ptr)
-
-	Function bmx_b2contactpoint_getshape1:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2contactpoint_getshape2:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2contactpoint_getseparation:Float(handle:Byte Ptr)
-	Function bmx_b2contactpoint_getfriction:Float(handle:Byte Ptr)
-	Function bmx_b2contactpoint_getrestitution:Float(handle:Byte Ptr)
-
 	Function bmx_b2filterdata_create:Byte Ptr()
 	Function bmx_b2filterdata_getcategorybits:Short(handle:Byte Ptr)
 	Function bmx_b2filterdata_setcategorybits(handle:Byte Ptr, categoryBits:Short)
