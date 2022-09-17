@@ -1,7 +1,7 @@
 SuperStrict
 
-Framework BaH.Box2d
-Import BRL.GLMax2D
+Framework Physics.Box2d
+Import SDL.SDLRenderMax2D
 
 Import "test.bmx"
 
@@ -65,7 +65,7 @@ Type TheoJansen Extends Test
 		sd = New b2PolygonDef
 		sd.SetDensity(1.0)
 		sd.SetAsBox(2.5, 1.0)
-		sd.GetFilter().SetGroupIndex(-1)
+		sd.SetFilterGroupIndex(-1)
 		bd = New b2BodyDef
 		bd.SetPosition(pivot.Plus(m_offset))
 		m_chassis = m_world.CreateBody(bd)
@@ -76,7 +76,7 @@ Type TheoJansen Extends Test
 		Local sd1:b2CircleDef = New b2CircleDef
 		sd1.SetDensity(1.0)
 		sd1.SetRadius(1.6)
-		sd1.GetFilter().SetGroupIndex(-1)
+		sd1.SetFilterGroupIndex(-1)
 		bd = New b2BodyDef
 		bd.SetPosition(pivot.Plus(m_offset))
 		m_wheel = m_world.CreateBody(bd)
@@ -125,8 +125,8 @@ Type TheoJansen Extends Test
 		Local sd1Vertices:b2Vec2[] = New b2Vec2[3]
 		Local sd2Vertices:b2Vec2[] = New b2Vec2[3]
 
-		sd1.GetFilter().SetGroupIndex(-1)
-		sd2.GetFilter().SetGroupIndex(-1)
+		sd1.SetFilterGroupIndex(-1)
+		sd2.SetFilterGroupIndex(-1)
 		sd1.SetDensity(1.0)
 		sd2.SetDensity(1.0)
 

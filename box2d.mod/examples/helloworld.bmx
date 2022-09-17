@@ -3,7 +3,7 @@ SuperStrict
 ' This is a simple example of building and running a simulation
 ' using Box2D. Here we create a large ground box and a small dynamic box.
 
-Framework BaH.Box2D
+Framework Physics.Box2d
 Import BRL.StandardIO
 
 ' Define the size of the world. Simulation will still work

@@ -1,5 +1,5 @@
 /*
-  Copyright (c) 2008-2021 Bruce A Henderson
+  Copyright (c) 2008-2022 Bruce A Henderson
  
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ class MaxDebugDraw;
 class MaxContactFilter;
 class MaxContactListener;
 class MaxBoundaryListener;
-class MaxFilterData;
 class MaxDestructionListener;
 class Maxb2EdgeChainDef;
 
@@ -93,6 +92,13 @@ extern "C" {
 		Maxb2Vec2 p1;
 		Maxb2Vec2 p2;
 	} Maxb2Segment;
+
+	typedef struct Maxb2FilterData
+	{
+		uint16 categoryBits;
+		uint16 maskBits;
+		int groupIndex;
+	} Maxb2FilterData;
 
 	void bmx_Maxb2AABBtob2AABB(Maxb2AABB * m, b2AABB * b) {
 		b->lowerBound = b2Vec2(m->lowerBound.x, m->lowerBound.y);
@@ -203,13 +209,16 @@ extern "C" {
 	void bmx_b2shapedef_setfriction(b2ShapeDef * def, float32 friction);
 	void bmx_b2shapedef_setrestitution(b2ShapeDef * def, float32 restitution);
 	void bmx_b2shapedef_setdensity(b2ShapeDef * def, float32 density);
-	void bmx_b2shapedef_setfilter(b2ShapeDef * def, MaxFilterData* filterData);
-	MaxFilterData* bmx_b2shapedef_getfilter(b2ShapeDef * def);
+	void bmx_b2shapedef_setfilter(b2ShapeDef * def, Maxb2FilterData filterData);
+	Maxb2FilterData bmx_b2shapedef_getfilter(b2ShapeDef * def);
 	void bmx_b2shapedef_setissensor(b2ShapeDef * def, int sensor);
 	int bmx_b2shapedef_issensor(b2ShapeDef * def);
 	float32 bmx_b2shapedef_getfriction(b2ShapeDef * def);
 	float32 bmx_b2shapedef_getrestitution(b2ShapeDef * def);
 	float32 bmx_b2shapedef_getdensity(b2ShapeDef * def);
+	void bmx_b2shapedef_setfilter_groupindex(b2ShapeDef * def, int groupIndex);
+	void bmx_b2shapedef_setfilter_categorybits(b2ShapeDef * def, BBSHORT categoryBits);
+	void bmx_b2shapedef_setfilter_maskbits(b2ShapeDef * def, BBSHORT maskBits);
 
 	b2PolygonDef * bmx_b2polygondef_create();
 	void bmx_b2polygondef_setasbox(b2PolygonDef * def, float32 hx, float32 hy);
@@ -223,6 +232,7 @@ extern "C" {
 	Maxb2Vec2 bmx_b2body_getposition(b2Body * body);
 	float32 bmx_b2body_getangle(b2Body * body);
 	BBObject * bmx_b2body_getmaxbody(b2Body * body);
+	void bmx_b2body_setmaxbody(b2Body * body, BBObject * obj);
 	b2Body * bmx_b2body_getnext(b2Body * body);
 	b2Shape * bmx_b2body_getshapelist(b2Body * body);
 	int bmx_b2body_isstatic(b2Body * body);
@@ -271,6 +281,7 @@ extern "C" {
 	int bmx_b2shape_issensor(b2Shape * shape);
 	b2Body * bmx_b2shape_getbody(b2Shape * shape);
 	BBObject * bmx_b2shape_getmaxshape(b2Shape * shape);
+	void bmx_b2shape_setmaxshape(b2Shape * shape, BBObject * obj);
 	b2Shape * bmx_b2shape_getnext(b2Shape * shape);
 	int bmx_b2shape_testpoint(b2Shape * shape, Maxb2XForm * xf, Maxb2Vec2 * p);
 	float32 bmx_b2shape_getsweepradius(b2Shape * shape);
@@ -279,8 +290,8 @@ extern "C" {
 	void bmx_b2shape_computeaabb(b2Shape * shape, Maxb2AABB * aabb, Maxb2XForm * xf);
 	void bmx_b2shape_computesweptaabb(b2Shape * shape, Maxb2AABB * aabb, Maxb2XForm * xf1, Maxb2XForm * xf2);
 	void bmx_b2shape_computemass(b2Shape * shape, b2MassData * data);
-	MaxFilterData * bmx_b2shape_getfilterdata(b2Shape * shape);
-	void bmx_b2shape_setfilterdata(b2Shape * shape, MaxFilterData * data);
+	Maxb2FilterData bmx_b2shape_getfilterdata(b2Shape * shape);
+	void bmx_b2shape_setfilterdata(b2Shape * shape, Maxb2FilterData data);
 	void bmx_b2shape_setfriction(b2Shape * shape, float32 friction);
 	void bmx_b2shape_setrestitution(b2Shape * shape, float32 restitution);
 	float32 bmx_b2shape_getdensity(b2Shape * shape);
@@ -432,15 +443,6 @@ extern "C" {
 	b2Contact * bmx_b2contact_getnext(b2Contact * contact);
 	int bmx_b2contact_issolid(b2Contact * contact);
 	int32 bmx_b2contact_getmanifoldcount(b2Contact * contact);
-
-	MaxFilterData* bmx_b2filterdata_create();
-	uint16  bmx_b2filterdata_getcategorybits(MaxFilterData * filterData);
-	void bmx_b2filterdata_setcategorybits(MaxFilterData * filterData, uint16 categoryBits);
-	uint16  bmx_b2filterdata_getmaskbits(MaxFilterData * filterData);
-	void bmx_b2filterdata_setmaskbits(MaxFilterData * filterData, uint16 maskBits);
-	int16 bmx_b2filterdata_getgroupindex(MaxFilterData * filterData);
-	void bmx_b2filterdata_setgroupindex(MaxFilterData * filterData, int index);
-	void bmx_b2filterdata_delete(MaxFilterData * filterData);
 
 	b2GearJointDef * bmx_b2gearjointdef_new();
 	void bmx_b2gearjointdef_setjoint1(b2GearJointDef * def, b2Joint * joint);
@@ -694,60 +696,6 @@ extern "C" {
 
 }
 
-class MaxFilterData
-{
-public:
-	MaxFilterData(b2FilterData& fd)
-	{
-		data = &fd;
-		owner = false;
-	}
-
-	MaxFilterData(const b2FilterData& fd)
-	{
-		data = const_cast<b2FilterData *>(&fd);
-		owner = false;
-	}
-
-	MaxFilterData()
-	{
-		data = new b2FilterData;
-		owner = true;
-	}
-
-	~MaxFilterData()
-	{
-		if (owner) {
-			delete data;
-		}
-	}
-	
-	const b2FilterData& getData() {
-		return *data;
-	}
-	
-	void setCategoryBits(uint16 categoryBits) {
-		data->categoryBits = categoryBits;
-	}
-	
-	void setMaskBits(uint16 maskBits) {
-		data->maskBits = maskBits;
-	}
-	
-	void setGroupIndex(int16 index) {
-		data->groupIndex = index;
-	}
-	
-	int16 getGroupIndex() {
-		return data->groupIndex;
-	}
-	
-private:
-	b2FilterData * data;
-	int owner;
-};
-
-
 // *****************************************************
 
 class Maxb2EdgeChainDef
@@ -929,7 +877,7 @@ int32 bmx_b2world_query(b2World * world, Maxb2AABB * aabb, BBArray * shapes) {
 		CB_PREF(physics_box2d_b2World__setShape)(shapes, i, _shapes[i]);
 	}
 
-	return ret;
+	return count;
 }
 
 void bmx_b2world_free(b2World * world) {
@@ -1114,12 +1062,15 @@ void bmx_b2shapedef_setdensity(b2ShapeDef * def, float32 density) {
 	def->density = density;
 }
 
-void bmx_b2shapedef_setfilter(b2ShapeDef * def, MaxFilterData * filterData) {
-	def->filter = filterData->getData();
+void bmx_b2shapedef_setfilter(b2ShapeDef * def, Maxb2FilterData filterData) {
+	def->filter.categoryBits = filterData.categoryBits;
+	def->filter.groupIndex = filterData.groupIndex;
+	def->filter.maskBits = filterData.maskBits;
 }
 
-MaxFilterData* bmx_b2shapedef_getfilter(b2ShapeDef * def) {
-	return new MaxFilterData(def->filter);
+Maxb2FilterData bmx_b2shapedef_getfilter(b2ShapeDef * def) {
+	Maxb2FilterData data = {def->filter.categoryBits, def->filter.maskBits, def->filter.groupIndex};
+	return data;
 }
 
 void bmx_b2shapedef_setissensor(b2ShapeDef * def, int sensor) {
@@ -1142,6 +1093,17 @@ float32 bmx_b2shapedef_getdensity(b2ShapeDef * def) {
 	return def->density;
 }
 
+void bmx_b2shapedef_setfilter_groupindex(b2ShapeDef * def, int groupIndex) {
+	def->filter.groupIndex = (int16)groupIndex;
+}
+
+void bmx_b2shapedef_setfilter_categorybits(b2ShapeDef * def, BBSHORT categoryBits) {
+	def->filter.categoryBits = categoryBits;
+}
+
+void bmx_b2shapedef_setfilter_maskbits(b2ShapeDef * def, BBSHORT maskBits) {
+	def->filter.maskBits = maskBits;
+}
 
 // *****************************************************
 
@@ -1229,6 +1191,11 @@ BBObject * bmx_b2body_getmaxbody(b2Body * body) {
 		return (BBObject *)obj;
 	}
 	return &bbNullObject;
+}
+
+void bmx_b2body_setmaxbody(b2Body * body, BBObject * obj) {
+	body->SetUserData(obj);
+	BBRETAIN(obj);
 }
 
 b2Body * bmx_b2body_getnext(b2Body * body) {
@@ -1503,6 +1470,11 @@ BBObject * bmx_b2shape_getmaxshape(b2Shape * shape) {
 	return &bbNullObject;
 }
 
+void bmx_b2shape_setmaxshape(b2Shape * shape, BBObject * obj) {
+	shape->SetUserData(obj);
+	BBRETAIN(obj);
+}
+
 b2Shape * bmx_b2shape_getnext(b2Shape * shape) {
 	return shape->GetNext();
 }
@@ -1554,12 +1526,18 @@ void bmx_b2shape_computemass(b2Shape * shape, b2MassData * data) {
 	shape->ComputeMass(data);
 }
 
-MaxFilterData * bmx_b2shape_getfilterdata(b2Shape * shape) {
-	return new MaxFilterData(shape->GetFilterData());
+Maxb2FilterData bmx_b2shape_getfilterdata(b2Shape * shape) {
+	b2FilterData filter = shape->GetFilterData();
+	Maxb2FilterData data = {filter.categoryBits, filter.maskBits, filter.groupIndex};
+	return data;
 }
 
-void bmx_b2shape_setfilterdata(b2Shape * shape, MaxFilterData * data) {
-	shape->SetFilterData(data->getData());
+void bmx_b2shape_setfilterdata(b2Shape * shape, Maxb2FilterData data) {
+	b2FilterData filter;
+	filter.categoryBits = data.categoryBits;
+	filter.maskBits = data.maskBits;
+	filter.groupIndex = data.groupIndex;
+	shape->SetFilterData(filter);
 }
 
 void bmx_b2shape_setfriction(b2Shape * shape, float32 friction) {
@@ -2304,40 +2282,6 @@ int bmx_b2contact_issolid(b2Contact * contact) {
 
 int32 bmx_b2contact_getmanifoldcount(b2Contact * contact) {
 	return contact->GetManifoldCount();
-}
-
-// *****************************************************
-
-MaxFilterData * bmx_b2filterdata_create() {
-	return new MaxFilterData();
-}
-
-uint16  bmx_b2filterdata_getcategorybits(MaxFilterData * filterData) {
-	return filterData->getData().categoryBits;
-}
-
-void bmx_b2filterdata_setcategorybits(MaxFilterData * filterData, uint16 categoryBits) {
-	filterData->setCategoryBits(categoryBits);
-}
-
-uint16  bmx_b2filterdata_getmaskbits(MaxFilterData * filterData) {
-	return filterData->getData().maskBits;
-}
-
-void bmx_b2filterdata_setmaskbits(MaxFilterData * filterData, uint16 maskBits) {
-	filterData->setMaskBits(maskBits);
-}
-
-int16 bmx_b2filterdata_getgroupindex(MaxFilterData * filterData) {
-	return filterData->getData().groupIndex;
-}
-
-void bmx_b2filterdata_setgroupindex(MaxFilterData * filterData, int index) {
-	filterData->setGroupIndex(index);
-}
-
-void bmx_b2filterdata_delete(MaxFilterData * filterData) {
-	delete filterData;
 }
 
 // *****************************************************

@@ -3,7 +3,7 @@
 '
 SuperStrict
 
-Import BRL.GLMax2D
+Import SDL.SDLRenderMax2D
 
 Global xScale:Float = 8
 Global yScale:Float = 8
@@ -86,12 +86,12 @@ Type debugDraw Extends b2DebugDraw
 	End Method
 
 	Method DrawPoint(p:b2Vec2, size:Float, color:b2Color)
-		glPointSize(size)
-		
+		'glPointSize(size)
+		'
 		SetColor(color.red, color.green, color.blue)
 		Plot(p.x * xScale, p.y * (-yScale))
 		
-		glPointSize(1.0)
+		'glPointSize(1.0)
 	End Method
 
 End Type

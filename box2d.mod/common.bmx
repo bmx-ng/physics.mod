@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2021 Bruce A Henderson
+' Copyright (c) 2008-2022 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -74,13 +74,16 @@ Extern
 	Function bmx_b2shapedef_setfriction(handle:Byte Ptr, friction:Float)
 	Function bmx_b2shapedef_setrestitution(handle:Byte Ptr, restitution:Float)
 	Function bmx_b2shapedef_setdensity(handle:Byte Ptr, density:Float)
-	Function bmx_b2shapedef_setfilter(handle:Byte Ptr, filter:Byte Ptr)
-	Function bmx_b2shapedef_getfilter:Byte Ptr(handle:Byte Ptr)
+	Function bmx_b2shapedef_setfilter(handle:Byte Ptr, filter:b2FilterData)
+	Function bmx_b2shapedef_getfilter:b2FilterData(handle:Byte Ptr)
 	Function bmx_b2shapedef_setissensor(handle:Byte Ptr, sensor:Int)
 	Function bmx_b2shapedef_issensor:Int(handle:Byte Ptr)
 	Function bmx_b2shapedef_getfriction:Float(handle:Byte Ptr)
 	Function bmx_b2shapedef_getrestitution:Float(handle:Byte Ptr)
 	Function bmx_b2shapedef_getdensity:Float(handle:Byte Ptr)
+	Function bmx_b2shapedef_setfilter_groupindex(handle:Byte Ptr, groupIndex:Int)
+	Function bmx_b2shapedef_setfilter_categorybits(handle:Byte Ptr, categoryBits:Short)
+	Function bmx_b2shapedef_setfilter_maskbits(handle:Byte Ptr, maskBits:Short)
 
 	Function bmx_b2polygondef_create:Byte Ptr()
 	Function bmx_b2polygondef_setasbox(handle:Byte Ptr, hx:Float, hy:Float)
@@ -91,6 +94,7 @@ Extern
 	Function bmx_b2body_setmassfromshapes(handle:Byte Ptr)
 	Function bmx_b2body_getangle:Float(handle:Byte Ptr)
 	Function bmx_b2body_getmaxbody:Object(handle:Byte Ptr)
+	Function bmx_b2body_setmaxbody(handle:Byte Ptr, body:Object)
 	Function bmx_b2body_getnext:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2body_getshapelist:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2body_isstatic:Int(handle:Byte Ptr)
@@ -125,13 +129,14 @@ Extern
 	Function bmx_b2shape_issensor:Int(handle:Byte Ptr)
 	Function bmx_b2shape_getbody:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2shape_getmaxshape:Object(handle:Byte Ptr)
+	Function bmx_b2shape_setmaxshape(handle:Byte Ptr, shape:Object)
 	Function bmx_b2shape_getnext:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2shape_getsweepradius:Float(handle:Byte Ptr)
 	Function bmx_b2shape_getfriction:Float(handle:Byte Ptr)
 	Function bmx_b2shape_getrestitution:Float(handle:Byte Ptr)
 	Function bmx_b2shape_computemass(handle:Byte Ptr, data:Byte Ptr)
-	Function bmx_b2shape_getfilterdata:Byte Ptr(handle:Byte Ptr)
-	Function bmx_b2shape_setfilterdata(handle:Byte Ptr, data:Byte Ptr)
+	Function bmx_b2shape_getfilterdata:b2FilterData(handle:Byte Ptr)
+	Function bmx_b2shape_setfilterdata(handle:Byte Ptr, data:b2FilterData)
 	Function bmx_b2shape_setfriction(handle:Byte Ptr, friction:Float)
 	Function bmx_b2shape_setrestitution(handle:Byte Ptr, restitution:Float)
 	Function bmx_b2shape_getdensity:Float(handle:Byte Ptr)
@@ -251,15 +256,6 @@ Extern
 	Function bmx_b2contact_getnext:Byte Ptr(handle:Byte Ptr)
 	Function bmx_b2contact_issolid:Int(handle:Byte Ptr)
 	Function bmx_b2contact_getmanifoldcount:Int(handle:Byte Ptr)
-
-	Function bmx_b2filterdata_create:Byte Ptr()
-	Function bmx_b2filterdata_getcategorybits:Short(handle:Byte Ptr)
-	Function bmx_b2filterdata_setcategorybits(handle:Byte Ptr, categoryBits:Short)
-	Function bmx_b2filterdata_getmaskbits:Short(handle:Byte Ptr)
-	Function bmx_b2filterdata_setmaskbits(handle:Byte Ptr, maskBits:Short)
-	Function bmx_b2filterdata_getgroupindex:Short(handle:Byte Ptr)
-	Function bmx_b2filterdata_setgroupindex(handle:Byte Ptr, index:Int)
-	Function bmx_b2filterdata_delete(handle:Byte Ptr)
 
 	Function bmx_b2gearjointdef_new:Byte Ptr()
 	Function bmx_b2gearjointdef_setjoint1(handle:Byte Ptr, joint:Byte Ptr)
@@ -443,3 +439,23 @@ Const e_tensorDampingController:Int = 3
 Const e_gravityController:Int = 4
 Const e_constantForceController:Int = 5
 
+Rem
+bbdoc: This holds contact filtering data
+End Rem
+Struct b2FilterData
+	Rem
+	bbdoc: The collision category bits.
+	about: Normally you would just set one bit.
+	End Rem
+	Field categoryBits:Short
+	Rem
+	bbdoc: The collision mask bits.
+	about: This states the categories that this shape would accept for collision.
+	End Rem
+	Field maskBits:Short
+	Rem
+	bbdoc: Collision groups allow a certain group of objects to never collide (negative) or always collide (positive). 
+	about: Zero means no collision group. Non-zero group filtering always wins against the mask bits.
+	End Rem
+	Field groupIndex:Int
+End Struct

@@ -1,7 +1,7 @@
 SuperStrict
 
-Framework BaH.Box2d
-Import BRL.GLMax2D
+Framework Physics.Box2d
+Import SDL.SDLRenderMax2D
 
 Import "test.bmx"
 

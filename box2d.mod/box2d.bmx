@@ -1,4 +1,4 @@
-' Copyright (c) 2008-2021 Bruce A Henderson
+' Copyright (c) 2008-2022 Bruce A Henderson
 ' 
 ' Permission is hereby granted, free of charge, to any person obtaining a copy
 ' of this software and associated documentation files (the "Software"), to deal
@@ -25,11 +25,14 @@ bbdoc: Box2D
 End Rem
 Module Physics.Box2D
 
-ModuleInfo "Version: 1.06"
+ModuleInfo "Version: 1.07"
 ModuleInfo "License: MIT"
 ModuleInfo "Copyright: Box2D (c) 2006-2016 Erin Catto http://www.gphysics.com"
-ModuleInfo "Copyright: BlitzMax port - 2008-2021 Bruce A Henderson"
+ModuleInfo "Copyright: BlitzMax port - 2008-2022 Bruce A Henderson"
 
+ModuleInfo "History: 1.07"
+ModuleInfo "History: Fixed for macOS build."
+ModuleInfo "History: Refactored to use some more structs."
 ModuleInfo "History: 1.06"
 ModuleInfo "History: Refactored to use structs where appropriate."
 ModuleInfo "History: 1.05"
@@ -77,6 +80,8 @@ Import "common.bmx"
 ' NOTES :
 '  b2Controller.h - Added userData fields/methods.
 '
+'  b2Math.h - added __APPLE__ test for isfinite() use.
+'
 
 Rem
 bbdoc: The world type manages all physics entities, dynamic simulation, and asynchronous queries. 
@@ -90,6 +95,8 @@ Type b2World
 	Field contactListener:b2ContactListener
 	Field boundaryListener:b2BoundaryListener
 	Field destructionListener:b2DestructionListener
+
+	Field groundBody:b2Body
 	
 	Function _create:b2World(b2ObjectPtr:Byte Ptr)
 		If b2ObjectPtr Then
@@ -292,7 +299,10 @@ Type b2World
 	about: You can use this to simplify the creation of joints and static shapes.
 	End Rem
 	Method GetGroundBody:b2Body()
-		Return b2Body._create(bmx_b2world_getgroundbody(b2ObjectPtr))
+		If Not groundBody Then
+			groundBody = b2Body._create(bmx_b2world_getgroundbody(b2ObjectPtr))
+		End If
+		Return groundBody
 	End Method
 
 	Rem
@@ -1082,6 +1092,7 @@ Type b2Body
 			If Not body Then
 				body = New b2Body
 				body.b2ObjectPtr = b2ObjectPtr
+				bmx_b2body_setmaxbody(b2ObjectPtr, body)
 			End If
 			Return body
 		End If
@@ -1392,7 +1403,7 @@ Type b2Body
 	bbdoc: Get the list of all joints attached to this body.
 	End Rem
 	Method GetJointList:b2JointEdge()
-		Return b2JointEdge._create(bmx_b2body_getjointlist(b2ObjectPtr))
+		Return New b2JointEdge(bmx_b2body_getjointlist(b2ObjectPtr))
 	End Method
 
 	Rem
@@ -1465,6 +1476,7 @@ Type b2Shape
 			If Not shape Then
 				shape = New b2Shape
 				shape.b2ObjectPtr = b2ObjectPtr
+				bmx_b2shape_setmaxshape(b2ObjectPtr, shape)
 			Else
 				If Not shape.b2ObjectPtr Then
 					shape.b2ObjectPtr = b2ObjectPtr
@@ -1521,7 +1533,7 @@ Type b2Shape
 	bbdoc: Get the contact filtering data. 
 	End Rem
 	Method GetFilterData:b2FilterData()
-		Return b2FilterData._create(bmx_b2shape_getfilterdata(b2ObjectPtr))
+		Return bmx_b2shape_getfilterdata(b2ObjectPtr)
 	End Method
 	
 	Rem
@@ -1529,7 +1541,7 @@ Type b2Shape
 	about: You must call b2World::Refilter to correct existing contacts/non-contacts. 
 	End Rem
 	Method SetFilterData(data:b2FilterData)
-		bmx_b2shape_setfilterdata(b2ObjectPtr, data.b2ObjectPtr)
+		bmx_b2shape_setfilterdata(b2ObjectPtr, data)
 	End Method
 
 	Rem
@@ -1953,17 +1965,13 @@ bbdoc: A joint edge is used to connect bodies and joints together in a joint gra
 about: A joint edge belongs to a doubly linked list maintained in each attached body. Each joint has two
 joint nodes, one for each attached body.
 End Rem
-Type b2JointEdge
+Struct b2JointEdge
 
 	Field b2ObjectPtr:Byte Ptr
 
-	Function _create:b2JointEdge(b2ObjectPtr:Byte Ptr)
-		If b2ObjectPtr Then
-			Local this:b2JointEdge = New b2JointEdge
-			this.b2ObjectPtr = b2ObjectPtr
-			Return this
-		End If
-	End Function
+	Method New(b2ObjectPtr:Byte Ptr)
+		Self.b2ObjectPtr = b2ObjectPtr
+	End Method
 
 	Rem
 	bbdoc: Provides quick access to the other body attached. 
@@ -1983,17 +1991,17 @@ Type b2JointEdge
 	bbdoc: Returns the previous joint edge in the body's joint list.
 	End Rem
 	Method GetPrev:b2JointEdge()
-		Return b2JointEdge._create(bmx_b2jointedge_getprev(b2ObjectPtr))
+		Return New b2JointEdge(bmx_b2jointedge_getprev(b2ObjectPtr))
 	End Method
 	
 	Rem
 	bbdoc: Returns the next joint edge in the body's joint list.
 	End Rem
 	Method GetNext:b2JointEdge()
-		Return b2JointEdge._create(bmx_b2jointedge_getnext(b2ObjectPtr))
+		Return new b2JointEdge(bmx_b2jointedge_getnext(b2ObjectPtr))
 	End Method
 	
-End Type
+End Struct
 
 Rem
 bbdoc: Holds the mass data computed for a shape.
@@ -2105,14 +2113,36 @@ Type b2ShapeDef
 	bbdoc: Sets the contact filtering data.
 	End Rem
 	Method SetFilter(filter:b2FilterData)
-		bmx_b2shapedef_setfilter(b2ObjectPtr, filter.b2ObjectPtr)
+		bmx_b2shapedef_setfilter(b2ObjectPtr, filter)
 	End Method
 	
 	Rem
+	bbdoc: Sets the contact filtering group index.
+	End Rem
+	Method SetFilterGroupIndex(groupIndex:Int)
+		bmx_b2shapedef_setfilter_groupindex(b2ObjectPtr, groupIndex)
+	End Method
+
+	Rem
+	bbdoc: Sets the contact filtering category bits.
+	End Rem
+	Method SetFilterCategoryBits(categoryBits:Short)
+		bmx_b2shapedef_setfilter_categorybits(b2ObjectPtr, categoryBits)
+	End Method
+
+	Rem
+	bbdoc: Sets the contact filtering mask bits.
+	End Rem
+	Method SetFilterMaskBits(maskBits:Short)
+		bmx_b2shapedef_setfilter_maskbits(b2ObjectPtr, maskBits)
+	End Method
+
+	Rem
 	bbdoc: Returns the contact filtering data.
+	about: If you change the field values of the returned #b2FilterData, you will need to call #SetFilter() with the new data. 
 	End Rem
 	Method GetFilter:b2FilterData()
-		Return b2FilterData._create(bmx_b2shapedef_getfilter(b2ObjectPtr))
+		Return bmx_b2shapedef_getfilter(b2ObjectPtr)
 	End Method
 	
 	Rem
@@ -2135,95 +2165,6 @@ Type b2ShapeDef
 	End Rem
 	Method SetUserData(data:Object)
 		userData = data
-	End Method
-	
-End Type
-
-Rem
-bbdoc: This holds contact filtering data.
-End Rem
-Type b2FilterData
-
-	Field owner:Int
-	Field b2ObjectPtr:Byte Ptr
-
-	Function _create:b2FilterData(b2ObjectPtr:Byte Ptr)
-		If b2ObjectPtr Then
-			Local this:b2FilterData = New b2FilterData
-			this.Free()
-			this.owner = False
-			this.b2ObjectPtr = b2ObjectPtr
-			Return this
-		End If
-	End Function
-
-	Method New()
-		owner = True
-		b2ObjectPtr = bmx_b2filterdata_create()	
-	End Method
-	
-	Rem
-	bbdoc: Returns the collision category bits.
-	End Rem
-	Method GetCategoryBits:Short()
-		Return bmx_b2filterdata_getcategorybits(b2ObjectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Sets the collision category bits.
-	about: Normally you would just set one bit.
-	End Rem
-	Method SetCategoryBits(categoryBits:Short)
-		bmx_b2filterdata_setcategorybits(b2ObjectPtr, categoryBits)
-	End Method
-	
-	Rem
-	bbdoc: Returns the collision mask bits.
-	about: This states the categories that this shape would accept for collision. 
-	End Rem
-	Method GetMaskBits:Short()
-		Return bmx_b2filterdata_getmaskbits(b2ObjectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Sets the collision mask bits.
-	about: This states the categories that this shape would accept for collision. 
-	End Rem
-	Method SetMaskBits(maskBits:Short)
-		bmx_b2filterdata_setmaskbits(b2ObjectPtr, maskBits)
-	End Method
-	
-	Rem
-	bbdoc: Returns the collision group index.
-	about: Collision groups allow a certain group of objects to never collide (negative) or always collide (positive). 
-	<p>
-	Zero means no collision group. Non-zero group filtering always wins against the mask bits. 
-	</p>
-	End Rem
-	Method GetGroupIndex:Short()
-		Return bmx_b2filterdata_getgroupindex(b2ObjectPtr)
-	End Method
-	
-	Rem
-	bbdoc: Sets the collision group index.
-	about: Collision groups allow a certain group of objects to never collide (negative) or always collide (positive). 
-	<p>
-	Zero means no collision group. Non-zero group filtering always wins against the mask bits. 
-	</p>
-	End Rem
-	Method SetGroupIndex(index:Int)
-		bmx_b2filterdata_setgroupindex(b2ObjectPtr, index)
-	End Method
-
-	Method Free()
-		If b2ObjectPtr And owner Then
-			bmx_b2filterdata_delete(b2ObjectPtr)
-			b2ObjectPtr = Null
-		End If
-	End Method
-	
-	Method Delete()
-		Free()
 	End Method
 	
 End Type

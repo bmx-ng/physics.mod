@@ -1,7 +1,7 @@
 SuperStrict
 
-Framework BaH.Box2d
-Import BRL.GLMax2D
+Framework Physics.Box2d
+Import SDL.SDLRenderMax2D
 
 Import "test.bmx"
 
@@ -38,11 +38,11 @@ Type SliderCrank Extends Test
 		vertices[1] = Vec2(2.2,-0.2)
 		vertices[0] = Vec2(2.2,-0.74)
 		poly1.SetVertices(vertices)
-		poly1.GetFilter().SetGroupIndex(-1)
+		poly1.SetFilterGroupIndex(-1)
 		
 		poly1.SetDensity(20.0)
 		poly1.SetFriction(0.68)
-		poly1.GetFilter().SetGroupIndex(-1)
+		poly1.SetFilterGroupIndex(-1)
 		
 		' top half
 		vertices = New b2Vec2[4]
@@ -51,11 +51,11 @@ Type SliderCrank Extends Test
 		vertices[1] = Vec2(0.5,0.74)
 		vertices[0] = Vec2(1.0,0)
 		poly2.SetVertices(vertices)
-		poly2.GetFilter().SetGroupIndex(-1)
+		poly2.SetFilterGroupIndex(-1)
 		
 		poly2.SetDensity(5.0)
 		poly2.SetFriction(0.68)
-		poly2.GetFilter().SetGroupIndex(-1)
+		poly2.SetFilterGroupIndex(-1)
 		
 		Local bd:b2BodyDef = New b2BodyDef
 		bd.SetPositionXY(-35.0, 2.8)
@@ -70,7 +70,7 @@ Type SliderCrank Extends Test
 		circ.SetDensity(40.0)
 		circ.SetRadius(0.38608)
 		circ.SetFriction(0.8)
-		circ.GetFilter().SetGroupIndex(-1)
+		circ.SetFilterGroupIndex(-1)
 		
 		bd = New b2BodyDef
 		bd.SetAllowSleep(False)

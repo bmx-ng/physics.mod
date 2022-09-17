@@ -70,7 +70,7 @@ inline bool b2IsValid(float32 x)
 	return _finite(x) != 0;
 #else
 	
-#ifdef TARGET_OS_IPHONE
+#if defined(TARGET_OS_IPHONE) || defined(__APPLE__)
 	return isfinite(x);
 #else
 	return finite(x) != 0;

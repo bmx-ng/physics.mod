@@ -1,14 +1,13 @@
 SuperStrict
 
-Framework BaH.Box2d
-Import BRL.GLMax2D
+Framework Physics.Box2d
+Import SDL.SDLRenderMax2D
 
 Import "test.bmx"
 
 
 Graphics 800,600, 0
 SetBlend alphablend
-
 
 Run(New CollisionFiltering.Create(), New TSettings)
 
@@ -61,9 +60,9 @@ Type CollisionFiltering Extends Test
 		triangleShapeDef.SetDensity(1.0)
 
 		' modify the def's filter
-		triangleShapeDef.GetFilter().SetGroupIndex(k_smallGroup)
-		triangleShapeDef.GetFilter().SetCategoryBits(k_triangleCategory)
-		triangleShapeDef.GetFilter().SetMaskBits(k_triangleMask)
+		triangleShapeDef.SetFilterGroupIndex(k_smallGroup)
+		triangleShapeDef.SetFilterCategoryBits(k_triangleCategory)
+		triangleShapeDef.SetFilterMaskBits(k_triangleMask)
 
 		Local triangleBodyDef:b2BodyDef = New b2BodyDef
 		triangleBodyDef.SetPositionXY(-5.0, 2.0)
@@ -79,7 +78,7 @@ Type CollisionFiltering Extends Test
 		vertices[2].Multiply(2.0)
 		triangleShapeDef.SetVertices(vertices)
 		
-		triangleShapeDef.GetFilter().SetGroupIndex(k_largeGroup)
+		triangleShapeDef.SetFilterGroupIndex(k_largeGroup)
 		triangleBodyDef.SetPositionXY(-5, 6.0)
 		triangleBodyDef.SetFixedRotation(True) ' look at me!
 
@@ -95,9 +94,9 @@ Type CollisionFiltering Extends Test
 
 		' create our own filter object
 		Local filter:b2FilterData = New b2FilterData
-		filter.SetGroupIndex(k_smallGroup)
-		filter.SetCategoryBits(k_boxCategory)
-		filter.SetMaskBits(k_boxMask)
+		filter.groupIndex = k_smallGroup
+		filter.categoryBits = k_boxCategory
+		filter.maskBits = k_boxMask
 
 		boxShapeDef.SetFilter(filter)
 		
@@ -111,7 +110,7 @@ Type CollisionFiltering Extends Test
 		
 		' Large box (recycle definitions)
 		boxShapeDef.SetAsBox(2.0, 1.0)
-		boxShapeDef.GetFilter().SetGroupIndex(k_largeGroup)
+		boxShapeDef.SetFilterGroupIndex(k_largeGroup)
 		boxBodyDef.SetPositionXY(0.0, 6.0)
 
 		Local body4:b2Body = m_world.CreateBody(boxBodyDef)
@@ -125,9 +124,9 @@ Type CollisionFiltering Extends Test
 		circleShapeDef.SetDensity(1.0)
 
 		filter = New b2FilterData
-		filter.SetGroupIndex(k_smallGroup)
-		filter.SetCategoryBits(k_circleCategory)
-		filter.SetMaskBits(k_circleMask)
+		filter.groupIndex = k_smallGroup
+		filter.categoryBits = k_circleCategory
+		filter.maskBits = k_circleMask
 		
 		circleShapeDef.SetFilter(filter)
 
@@ -141,7 +140,7 @@ Type CollisionFiltering Extends Test
 		
 		' Large circle
 		circleShapeDef.SetRadius(circleShapeDef.GetRadius() * 2.0)
-		circleShapeDef.GetFilter().SetGroupIndex(k_largeGroup)
+		circleShapeDef.SetFilterGroupIndex(k_largeGroup)
 		circleBodyDef.SetPositionXY(5.0, 6.0)
 
 		Local body6:b2Body = m_world.CreateBody(circleBodyDef)
@@ -178,12 +177,12 @@ Type myfilter Extends b2ContactFilter
 
 		Local filter1:b2FilterData = shape1.GetFilterData()
 		Local filter2:b2FilterData = shape2.GetFilterData()
-
-		If filter1.GetGroupIndex() = filter2.GetGroupIndex() And filter1.GetGroupIndex() <> 0
- 			Return filter1.GetGroupIndex() < $7FFF
+		If filter1.groupIndex = filter2.groupIndex And filter1.groupIndex <> 0
+ 			Return filter1.groupIndex < $7FFF
 		End If
-	
-		Local collide:Int = (filter1.GetMaskBits() & filter2.GetCategoryBits()) <> 0 And (filter1.GetCategoryBits() & filter2.GetMaskBits()) <> 0
+
+		Local collide:Int = (filter1.maskBits & filter2.categoryBits) <> 0 And (filter1.categoryBits & filter2.maskBits) <> 0
+
 		Return collide
 
 	End Method

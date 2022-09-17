@@ -1,8 +1,8 @@
 SuperStrict
 
-Framework BaH.Box2d
-Import BRL.GLMax2D
-Import BRL.RandomDefault
+Framework Physics.Box2d
+Import SDL.SDLRenderMax2D
+Import BRL.Random
 
 Import "test.bmx"
 
@@ -252,7 +252,7 @@ Type DynamicEdges Extends Test
 		body = m_world.CreateBody(bd)
 		
 		Local weight:b2CircleDef = New b2CircleDef
-		weight.GetFilter().SetMaskBits(0)
+		weight.SetFilterMaskBits(0)
 		weight.SetDensity(4.0)
 		weight.SetRadius(0.5)
 		weight.SetLocalPosition(Vec2(8.9, 5.75))
